@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="color-scheme" content="light dark"/>
+<link rel="icon" href="data:,"/>
+<title>Retreat at Rayfield — Resident Portal (Proof of Concept)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1ee; --surface:#ffffff; --surface2:#f4f6f3; --ink:#17251c; --muted:#5b6b60; --line:#d8ded7;
+  --brand:#1e5631; --brand2:#143d22; --accent:#b96a1f; --accent-bg:#fdf1e3;
+  --danger:#b42318; --danger-bg:#fef0ee; --ok:#1e5631; --ok-bg:#e7f2e9; --warn-bg:#fff6db; --warn:#7a5a00;
+  --radius:14px; --shadow:0 8px 28px rgba(20,40,25,.10);
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#101612; --surface:#1a221c; --surface2:#222b24; --ink:#eef3ee; --muted:#a7b5a9; --line:#334037;
+  --brand:#4caf7d; --brand2:#8fd3ab; --accent:#e8a04c; --accent-bg:#3a2c18; --danger-bg:#3d1f1c; --ok-bg:#1d3325; --warn-bg:#38300f; --warn:#f0d47a; --shadow:0 8px 28px rgba(0,0,0,.4);}
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Libre Franklin",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+h1,h2,h3{font-family:"Source Serif 4",Georgia,serif;line-height:1.15;margin:0}
+button,input,select,textarea{font:inherit}
+button,[role="button"],select,summary,input:not([type=checkbox]){min-height:44px}
+a{color:var(--brand)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--brand);background:var(--brand);color:#fff;padding:10px 18px;border-radius:10px;font-weight:600;cursor:pointer;text-decoration:none;min-height:44px}
+.btn.secondary{background:var(--surface);color:var(--brand);border-color:var(--line)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.small{min-height:38px;padding:6px 12px;font-size:.9rem}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.78rem;font-weight:700}
+.badge.green{background:var(--ok-bg);color:var(--ok)} .badge.amber{background:var(--warn-bg);color:var(--warn)} .badge.red{background:var(--danger-bg);color:var(--danger)} .badge.gray{background:var(--surface2);color:var(--muted)}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+label{font-weight:600;font-size:.9rem;display:block;margin:0 0 6px}
+.field{margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:.93rem}
+th{text-align:left;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;padding:8px}
+td{padding:10px 8px;border-top:1px solid var(--line);vertical-align:top}
+.tablewrap{overflow-x:auto}
+/* LOGIN */
+#loginView{min-height:100vh;display:grid;grid-template-columns:1.1fr .9fr}
+.login-hero{background:linear-gradient(160deg,#143d22 0%,#1e5631 55%,#2f6b3e 100%);color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden}
+.login-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at 20% 15%,rgba(255,255,255,.14),transparent 60%)}
+.login-hero h1{font-size:2.6rem;position:relative}
+.login-hero p{position:relative;max-width:46ch;opacity:.92}
+.login-panel{display:flex;align-items:center;justify-content:center;padding:32px 20px;background:var(--surface)}
+.login-box{width:100%;max-width:420px}
+.demo-creds{background:var(--accent-bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:16px 0;font-size:.93rem}
+@media(max-width:860px){#loginView{grid-template-columns:1fr}.login-hero{padding:32px 24px}.login-hero h1{font-size:2rem}}
+/* APP SHELL */
+#appView{display:none;min-height:100vh}
+.shell{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+.sidebar{background:var(--brand2);color:#eaf3ec;padding:20px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+@media (prefers-color-scheme: dark){.sidebar{background:#0d1f13}}
+.sidebar .brand{font-family:"Source Serif 4",serif;font-size:1.25rem;font-weight:700;padding:4px 10px 4px}
+.sidebar .sub{font-size:.8rem;opacity:.75;padding:0 10px 16px}
+.navbtn{display:flex;width:100%;text-align:left;background:transparent;border:0;color:inherit;padding:11px 12px;border-radius:10px;cursor:pointer;font-weight:500;align-items:center;gap:10px;min-height:44px}
+.navbtn:hover{background:rgba(255,255,255,.10)} .navbtn.active{background:rgba(255,255,255,.18);font-weight:700}
+.main{padding:22px 26px 60px;max-width:1180px;width:100%;margin:0 auto}
+.topbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+.balance-chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:600}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:18px}
+.stat .num{font-family:"Source Serif 4",serif;font-size:1.9rem;font-weight:700}
+.stat .lbl{color:var(--muted);font-size:.88rem}
+.section{display:none}.section.active{display:block}
+.section h2{font-size:1.7rem;margin-bottom:6px}.section .lede{color:var(--muted);margin:0 0 18px;max-width:70ch}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;align-items:center}
+.toolbar input,.toolbar select{width:auto;flex:1;min-width:160px}
+.modal-bg{position:fixed;inset:0;background:rgba(10,20,12,.55);display:none;align-items:flex-end;justify-content:center;z-index:50;padding:0}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);color:var(--ink);border-radius:18px 18px 0 0;width:100%;max-width:640px;max-height:92vh;overflow:auto;padding:24px}
+@media(min-width:700px){.modal-bg{align-items:center;padding:20px}.modal{border-radius:18px}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;background:#17251c;color:#fff;padding:12px 18px;border-radius:12px;z-index:80;display:none;max-width:92vw;text-align:center;box-shadow:var(--shadow)}
+.toast.show{display:block}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal .dow{font-size:.75rem;text-transform:uppercase;color:var(--muted);text-align:center;font-weight:700;padding:4px}
+.cal .day{border:1px solid var(--line);border-radius:10px;min-height:76px;padding:6px;background:var(--surface);cursor:pointer;text-align:left;color:var(--ink)}
+.cal .day.dim{opacity:.4}.cal .day.today{outline:2px solid var(--brand)}
+.cal .ev{font-size:.72rem;background:var(--ok-bg);color:var(--ok);border-radius:6px;padding:2px 5px;margin-top:3px;display:block}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.gtile{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+.gtile .art{height:130px;display:flex;align-items:center;justify-content:center;font-size:2.2rem}
+.gtile p{margin:0;padding:10px 12px;font-weight:600;font-size:.92rem}
+.chatbox{border:1px solid var(--line);border-radius:12px;height:300px;overflow:auto;padding:14px;background:var(--surface2);margin-bottom:12px}
+.msg{margin-bottom:10px;max-width:85%}.msg .bubble{padding:10px 14px;border-radius:14px;display:inline-block}
+.msg.ted .bubble{background:var(--surface);border:1px solid var(--line)} .msg.me{margin-left:auto;text-align:right}.msg.me .bubble{background:var(--brand);color:#fff}
+.docrow{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.docrow:first-child{border-top:0}
+.iconbox{width:44px;height:44px;border-radius:10px;background:var(--ok-bg);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex:none}
+.mobileNav{display:none}
+@media(max-width:860px){
+  .shell{grid-template-columns:1fr}.sidebar{display:none}
+  .main{padding:16px 14px 96px}
+  .mobileNav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line);z-index:40;padding:6px}
+  .mobileNav button{flex:1;background:none;border:0;padding:8px 2px;font-size:.72rem;font-weight:600;color:var(--muted);cursor:pointer;min-height:52px}
+  .mobileNav button.active{color:var(--brand)}
+  #mobileMenu{position:fixed;inset:0;background:var(--surface);z-index:60;padding:20px;overflow:auto}
+  #mobileMenu button.mitem{display:block;width:100%;text-align:left;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:8px;font-weight:600;color:var(--ink);cursor:pointer;min-height:52px}
+}
+.notice{background:var(--warn-bg);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:.92rem;margin-bottom:16px}
+.kv{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)} .kv:first-child{border-top:0}
+.switchrow{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--line);gap:12px}
+input[type=checkbox]{width:22px;height:22px;min-height:22px;accent-color:var(--brand)}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="loginView">
+  <div class="login-hero">
+    <p style="font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.8rem">Resident Portal · Proof of Concept</p>
+    <h1>The Retreat at Rayfield</h1>
+    <p>Pay dues, submit architectural requests, reserve the clubhouse and pool, track work orders, and read community documents — all in one place. This demo uses sample data only.</p>
+    <p style="font-size:.9rem">≈375 homes · Charlotte, NC · Quarterly assessments $350 starting Jan 1, 2027</p>
+  </div>
+  <div class="login-panel">
+    <div class="login-box">
+      <h2 style="font-size:1.6rem">Sign in to the portal</h2>
+      <p style="color:var(--muted)">Try the full portal with the guest account — every feature is open.</p>
+      <div class="demo-creds"><strong>Guest account</strong><br>Email: <code>guest@rayfield.demo</code><br>Password: <code>guest</code><br><span style="color:var(--muted)">Or just tap the button below — no typing needed.</span></div>
+      <form id="loginForm">
+        <div class="field"><label for="loginEmail">Email</label><input id="loginEmail" type="email" value="guest@rayfield.demo" autocomplete="username"></div>
+        <div class="field"><label for="loginPass">Password</label><input id="loginPass" type="password" value="guest" autocomplete="current-password"></div>
+        <button class="btn" style="width:100%" type="submit">Sign in</button>
+      </form>
+      <button class="btn secondary" id="guestBtn" style="width:100%;margin-top:10px">Continue as Guest →</button>
+      <p id="loginErr" style="color:var(--danger);display:none">Please enter an email and password, or continue as guest.</p>
+      <p style="font-size:.85rem;color:var(--muted);margin-top:18px">Demo only: sign-in is simulated in your browser. Nothing is sent anywhere, no real accounts exist, and anything you add disappears when you close the page.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="appView">
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">Retreat at Rayfield</div>
+    <div class="sub">Resident Portal · Demo<br>Guest Homeowner · Lot 142</div>
+    <nav id="sideNav"></nav>
+    <button class="navbtn" id="logoutBtn" style="margin-top:14px">↩ Sign out</button>
+  </aside>
+  <div>
+    <main class="main">
+      <div class="topbar">
+        <div><strong id="greeting">Welcome back</strong><div style="color:var(--muted);font-size:.9rem">142 Rayfield Drive · Sample account — all data on this page is fictional demo data.</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="balance-chip">Balance due: <span id="topBalance">$350.00</span></span><button class="btn small" data-goto="payments">Pay now</button><button class="btn small secondary" id="tedBtnTop">Ask TED</button></div>
+      </div>
+      <div class="notice">🧪 <strong>Proof of concept:</strong> payments are simulated (test mode — no real money moves, never enter a real card number), and records you create live only for this visit.</div>
+      <div id="sections"></div>
+    </main>
+  </div>
+</div>
+<nav class="mobileNav" id="mobileNav"></nav>
+<div id="mobileMenu" style="display:none"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-size:1.3rem">All portal sections</h3><button class="btn ghost small" id="mobileMenuClose">✕ Close</button></div><div id="mobileMenuList"></div><button class="btn secondary" id="logoutBtnM" style="width:100%;margin-top:8px">Sign out</button></div>
+</div>
+
+<!-- Modal + Toast -->
+<div class="modal-bg" id="modalBg"><div class="modal" role="dialog" aria-modal="true"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><h3 id="modalTitle" style="font-size:1.3rem"></h3><button class="btn ghost small" id="modalClose">✕ Close</button></div><div id="modalBody"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- Demo data (all fictional) ---------- */
+var FEES = { cardPct: 0.04, echeck: 2.99, returned: 30, arc: 20 };
+var state = {
+  balance: 350.00,
+  ledger: [
+    {date:"2026-10-01", desc:"Quarterly assessment — Q4 2026", cat:"Assessment", amt:300.00},
+    {date:"2026-10-03", desc:"Payment — eCheck ••4821", cat:"Payment", amt:-300.00},
+    {date:"2026-11-02", desc:"ARC submission fee — Fence project", cat:"ARC fee", amt:20.00},
+    {date:"2026-11-02", desc:"Payment — Card ••7714", cat:"Payment", amt:-20.00},
+    {date:"2027-01-01", desc:"Quarterly assessment — Q1 2027 (new rate)", cat:"Assessment", amt:350.00}
+  ],
+  payments: [
+    {date:"2026-10-03", amt:300.00, method:"eCheck ••4821", status:"Posted", fee:2.99},
+    {date:"2026-11-02", amt:20.00, method:"Card ••7714", status:"Posted", fee:0.80},
+    {date:"2026-07-02", amt:300.00, method:"eCheck ••4821", status:"Posted", fee:2.99}
+  ],
+  wallet: [ {type:"Bank account (eCheck)", label:"Checking ••4821", def:true}, {type:"Card", label:"Visa ••7714", def:false} ],
+  autopay: { on:true, amount:"Full balance", freq:"Quarterly", renews:"Dec 2027" },
+  arcs: [
+    {date:"2026-10-18", type:"Fence", desc:"6 ft privacy fence, rear yard", status:"Approved"},
+    {date:"2026-11-02", type:"Exterior painting", desc:"Front door + shutters, navy", status:"Pending review"}
+  ],
+  workorders: [
+    {num:"WO-1042", issued:"2026-11-04", due:"2026-11-13", desc:"Landscaping — fallen branch at pond path", status:"In progress"},
+    {num:"WO-1031", issued:"2026-10-21", due:"2026-10-28", desc:"Road & street — streetlight out, Rayfield Dr", status:"Complete"}
+  ],
+  violations: [
+    {date:"2026-09-14", desc:"Trash bins visible from street", status:"Closed", note:"Resolved after first reminder — thank you."},
+    {date:"2026-11-05", desc:"Lawn maintenance — edging along sidewalk", status:"Open", note:"Friendly reminder issued. Please address within 14 days or add a comment if you need more time."}
+  ],
+  reservations: [
+    {date:"2026-11-21", amenity:"Clubhouse", time:"2:00–6:00 PM", guests:24, status:"Confirmed"},
+    {date:"2026-12-05", amenity:"Pool — party area", time:"11:00 AM–1:00 PM", guests:12, status:"Confirmed"}
+  ],
+  announcements: [
+    {date:"Nov 8, 2026", title:"2027 budget approved — assessments $350/quarter", body:"The board approved the final 2027 budget on Nov 3. Quarterly assessments rise from $300 to $350 effective January 1, 2027. The full budget PDF is in Documents → Financials."},
+    {date:"Nov 5, 2026", title:"Fall festival photos are up", body:"Thanks to everyone who came out. See the Gallery for this year's photos and add yours at the clubhouse desk."},
+    {date:"Oct 28, 2026", title:"Pool winterization starts Nov 16", body:"The pool closes for the season on November 16. The gym and clubhouse keep regular hours."}
+  ],
+  events: [
+    {day:12, month:10, year:2026, title:"Board meeting — open session", time:"6:30 PM · Clubhouse"},
+    {day:14, month:10, year:2026, title:"Book club", time:"7:00 PM · Clubhouse"},
+    {day:21, month:10, year:2026, title:"Your clubhouse reservation", time:"2:00–6:00 PM"},
+    {day:3, month:11, year:2026, title:"Annual meeting", time:"6:00 PM · Clubhouse"},
+    {day:5, month:11, year:2026, title:"Your pool party reservation", time:"11:00 AM"},
+    {day:12, month:11, year:2026, title:"Board meeting — open session", time:"6:30 PM · Clubhouse"}
+  ],
+  directory: [
+    {name:"Jordan Ellis", role:"Board — President", addr:"Board directory", phone:"(704) 555-0110", email:"board@rayfield.demo"},
+    {name:"Priya Nair", role:"Board — Treasurer", addr:"Board directory", phone:"(704) 555-0114", email:"treasurer@rayfield.demo"},
+    {name:"Sam Whitaker", role:"Pool Committee", addr:"118 Rayfield Dr", phone:"(704) 555-0142", email:"sam.w@rayfield.demo"},
+    {name:"Alex Morgan (you)", role:"Homeowner · Lot 142", addr:"142 Rayfield Dr", phone:"(704) 555-0168", email:"guest@rayfield.demo"},
+    {name:"Casey Brooks", role:"Landscape Committee", addr:"87 Rayfield Dr", phone:"(704) 555-0127", email:"casey.b@rayfield.demo"},
+    {name:"Robin Chen", role:"Homeowner", addr:"203 Rayfield Dr", phone:"(704) 555-0193", email:"robin.c@rayfield.demo"}
+  ],
+  documents: [
+    {folder:"Governing Documents", name:"CC&Rs (Declaration)", meta:"PDF · recorded 2021, amended Feb 2025"},
+    {folder:"Governing Documents", name:"Bylaws + amendments", meta:"PDF · 2021"},
+    {folder:"Governing Documents", name:"Articles of Incorporation", meta:"PDF · 2021"},
+    {folder:"Governing Documents", name:"ARC Handbook", meta:"PDF · rev. Sept 18, 2026"},
+    {folder:"Governing Documents", name:"Fine Schedule", meta:"PDF · v1, Aug 2023"},
+    {folder:"Financials", name:"Final 2027 Budget", meta:"PDF · approved Nov 3, 2026"},
+    {folder:"Financials", name:"Monthly Financials — October 2026", meta:"PDF"},
+    {folder:"Financials", name:"Reserve Study", meta:"PDF · July 2026"},
+    {folder:"Meetings", name:"Open Session Agenda Packet — Nov 2026", meta:"PDF"},
+    {folder:"Meetings", name:"Annual Meeting Minutes — 2025", meta:"PDF"},
+    {folder:"Pool & Clubhouse", name:"Pool Information & Rules", meta:"PDF"},
+    {folder:"Pool & Clubhouse", name:"Gym Rules", meta:"PDF"}
+  ]
+};
+var calCursor = { y: 2026, m: 10 }; // November 2026
+
+/* ---------- Helpers ---------- */
+function $(s){ return document.querySelector(s); }
+function money(n){ return (n<0?"−$":"$") + Math.abs(n).toFixed(2); }
+function toast(msg){ var t=$("#toast"); t.textContent=msg; t.classList.add("show"); setTimeout(function(){t.classList.remove("show")},3400); }
+function openModal(title, html){ $("#modalTitle").textContent=title; $("#modalBody").innerHTML=html; $("#modalBg").classList.add("open"); }
+function closeModal(){ $("#modalBg").classList.remove("open"); }
+$("#modalClose").addEventListener("click", closeModal);
+$("#modalBg").addEventListener("click", function(e){ if(e.target===this) closeModal(); });
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+
+/* ---------- Navigation ---------- */
+var NAV = [
+  ["dashboard","🏠 Dashboard"],["payments","💳 Payments & Ledger"],["arc","🏗️ ARC Requests"],
+  ["workorders","🔧 Work Orders"],["violations","⚠️ Violations"],["documents","📁 Documents"],
+  ["calendar","📅 Calendar"],["reservations","🏊 Reservations"],["directory","👥 Directory"],
+  ["announcements","📣 Announcements"],["gallery","🖼️ Gallery"],["forms","📝 Forms"],
+  ["contact","✉️ Contact & Ask TED"],["profile","👤 My Profile"]
+];
+function goto(id){
+  document.querySelectorAll(".section").forEach(function(s){ s.classList.toggle("active", s.id==="sec-"+id); });
+  document.querySelectorAll("[data-nav]").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-nav")===id); });
+  window.scrollTo({top:0});
+}
+function buildNav(){
+  var html = NAV.map(function(n){ return '<button class="navbtn" data-nav="'+n[0]+'">'+n[1]+'</button>'; }).join("");
+  $("#sideNav").innerHTML = html;
+  var primary = ["dashboard","payments","reservations","calendar"];
+  $("#mobileNav").innerHTML = NAV.filter(function(n){ return primary.indexOf(n[0])>-1; }).map(function(n){ return '<button data-nav="'+n[0]+'">'+n[1].split(" ").slice(1).join(" ")+'</button>'; }).join("") + '<button id="moreBtn">☰ More</button>';
+  $("#mobileMenuList").innerHTML = NAV.map(function(n){ return '<button class="mitem" data-nav="'+n[0]+'">'+n[1]+'</button>'; }).join("");
+  document.querySelectorAll("[data-nav]").forEach(function(b){ b.addEventListener("click", function(){ $("#mobileMenu").style.display="none"; goto(b.getAttribute("data-nav")); }); });
+  $("#moreBtn").addEventListener("click", function(){ $("#mobileMenu").style.display="block"; });
+  $("#mobileMenuClose").addEventListener("click", function(){ $("#mobileMenu").style.display="none"; });
+  document.querySelectorAll("[data-goto]").forEach(function(b){ b.addEventListener("click", function(){ goto(b.getAttribute("data-goto")); }); });
+}
+
+/* ---------- Renderers ---------- */
+function renderAll(){ renderDashboard(); renderPayments(); renderARC(); renderWO(); renderViolations(); renderDocs(); renderCalendar(); renderReservations(); renderDirectory(); renderAnnouncements(); renderGallery(); renderForms(); renderContact(); renderProfile(); $("#topBalance").textContent = money(state.balance); }
+
+function renderDashboard(){
+  var openWO = state.workorders.filter(function(w){return w.status!=="Complete"}).length;
+  var openV = state.violations.filter(function(v){return v.status==="Open"}).length;
+  var pendARC = state.arcs.filter(function(a){return a.status.indexOf("Pending")===0}).length;
+  $("#sec-dashboard").innerHTML =
+  '<h2>Dashboard</h2><p class="lede">Your account at a glance.</p>'+
+  '<div class="cards">'+
+  '<div class="card stat"><div class="num">'+money(state.balance)+'</div><div class="lbl">Balance due today · $0.00 due in 30 days beyond this</div><button class="btn small" style="margin-top:10px" onclick="goto(\'payments\')">Make a payment</button></div>'+
+  '<div class="card stat"><div class="num">'+state.reservations.length+'</div><div class="lbl">Upcoming reservations</div><button class="btn small secondary" style="margin-top:10px" onclick="goto(\'reservations\')">View reservations</button></div>'+
+  '<div class="card stat"><div class="num">'+openWO+'</div><div class="lbl">Open work orders</div><button class="btn small secondary" style="margin-top:10px" onclick="goto(\'workorders\')">View work orders</button></div>'+
+  '<div class="card stat"><div class="num">'+openV+' open · '+pendARC+' pending</div><div class="lbl">Violations open · ARC requests pending</div><button class="btn small secondary" style="margin-top:10px" onclick="goto(\'violations\')">Review</button></div></div>'+
+  '<div class="grid2"><div class="card"><h3 style="margin-bottom:10px">Upcoming events</h3>'+
+  state.events.slice(0,4).map(function(e){ return '<div class="kv"><span>'+e.title+'</span><strong>'+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][e.month]+' '+e.day+'</strong></div>'; }).join("")+
+  '<button class="btn small secondary" style="margin-top:12px" onclick="goto(\'calendar\')">Open calendar</button></div>'+
+  '<div class="card"><h3 style="margin-bottom:10px">Latest announcements</h3>'+
+  state.announcements.slice(0,2).map(function(a){ return '<p style="margin:0 0 10px"><strong>'+esc(a.title)+'</strong><br><span style="color:var(--muted);font-size:.88rem">'+a.date+'</span></p>'; }).join("")+
+  '<button class="btn small secondary" onclick="goto(\'announcements\')">All announcements</button></div></div>';
+}
+
+function renderPayments(){
+  var rows = state.ledger.map(function(l){ return '<tr><td>'+l.date+'</td><td>'+esc(l.desc)+'</td><td>'+l.cat+'</td><td style="text-align:right;font-weight:600">'+money(l.amt)+'</td></tr>'; }).join("");
+  var hist = state.payments.map(function(p){ return '<tr><td>'+p.date+'</td><td>'+money(p.amt)+'</td><td>'+p.method+'</td><td>'+money(p.fee)+'</td><td><span class="badge green">'+p.status+'</span></td></tr>'; }).join("");
+  var wallet = state.wallet.map(function(w,i){ return '<div class="kv"><span>'+esc(w.label)+' — '+esc(w.type)+(w.def?' · default':'')+'</span><button class="btn small ghost" onclick="removeWallet('+i+')">Remove</button></div>'; }).join("");
+  $("#sec-payments").innerHTML =
+  '<h2>Payments &amp; Account Ledger</h2><p class="lede">Assessments are quarterly, due Jan, Apr, Jul, Oct. Fees: cards 4%, e-check $2.99 flat, returned payment $30. Mail a check to the association PO box with no processing fee, or enroll in free ACH draft (drafted on the 5th).</p>'+
+  '<div class="cards"><div class="card stat"><div class="num">'+money(state.balance)+'</div><div class="lbl">Current balance</div></div>'+
+  '<div class="card stat"><div class="num">$300.00</div><div class="lbl">Last payment · Oct 3, eCheck</div></div>'+
+  '<div class="card stat"><div class="num">$350.00</div><div class="lbl">Next assessment · Jan 1, 2027</div></div></div>'+
+  '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px"><button class="btn" onclick="payModal()">Make a payment</button><button class="btn secondary" onclick="walletModal()">Add payment method</button><button class="btn secondary" onclick="autopayModal()">Manage AutoPay '+(state.autopay.on?'(On)':'(Off)')+'</button><button class="btn ghost" onclick="downloadLedger()">⬇ Export ledger (CSV)</button></div>'+
+  '<div class="card" style="margin-bottom:14px"><h3 style="margin-bottom:8px">Ledger</h3><div class="tablewrap"><table><tr><th>Date</th><th>Description</th><th>Category</th><th style="text-align:right">Amount</th></tr>'+rows+'</table></div></div>'+
+  '<div class="grid2"><div class="card"><h3 style="margin-bottom:8px">Payment history</h3><div class="tablewrap"><table><tr><th>Date</th><th>Amount</th><th>Method</th><th>Fee</th><th>Status</th></tr>'+hist+'</table></div></div>'+
+  '<div class="card"><h3 style="margin-bottom:8px">My Wallet</h3>'+wallet+'<p style="color:var(--muted);font-size:.88rem;margin:10px 0 0">Demo wallet — no real payment details are stored.</p></div></div>';
+}
+function payModal(){
+  openModal("Make a payment — test mode",
+  '<div class="field"><label>Payment method</label><select id="payMethod"><option value="echeck">eCheck — Checking ••4821 (fee $2.99)</option><option value="card">Card — Visa ••7714 (fee 4%)</option></select></div>'+
+  '<div class="field"><label>Amount (USD)</label><input id="payAmt" type="number" min="1" step="0.01" value="'+state.balance.toFixed(2)+'"></div>'+
+  '<div class="field"><label>Payment date</label><input id="payDate" type="date" value="2026-11-10"></div>'+
+  '<div class="card" style="background:var(--surface2)"><div class="kv"><span>Amount</span><strong id="paySumAmt">—</strong></div><div class="kv"><span>Processing fee</span><strong id="paySumFee">—</strong></div><div class="kv"><span>Total charged</span><strong id="paySumTot">—</strong></div></div>'+
+  '<p style="font-size:.88rem;color:var(--muted)">Simulated payment. No real money moves and no card is charged.</p>'+
+  '<button class="btn" style="width:100%" onclick="submitPayment()">Review &amp; pay (simulated)</button>');
+  var upd=function(){ var a=parseFloat($("#payAmt").value)||0; var fee = $("#payMethod").value==="card" ? Math.round(a*FEES.cardPct*100)/100 : (a>0?FEES.echeck:0); $("#paySumAmt").textContent=money(a); $("#paySumFee").textContent=money(fee); $("#paySumTot").textContent=money(a+fee); };
+  $("#payMethod").addEventListener("change",upd); $("#payAmt").addEventListener("input",upd); upd();
+}
+function submitPayment(){
+  var a=parseFloat($("#payAmt").value)||0; if(a<=0){ toast("Enter an amount above $0."); return; }
+  var isCard=$("#payMethod").value==="card"; var fee=isCard?Math.round(a*FEES.cardPct*100)/100:FEES.echeck;
+  var method=isCard?"Card ••7714":"eCheck ••4821"; var d=$("#payDate").value||"2026-11-10";
+  state.payments.unshift({date:d, amt:a, method:method, status:"Posted", fee:fee});
+  state.ledger.push({date:d, desc:"Payment — "+method, cat:"Payment", amt:-a});
+  state.balance=Math.max(0, Math.round((state.balance-a)*100)/100);
+  closeModal(); renderAll(); toast("Simulated payment of "+money(a)+" posted. New balance: "+money(state.balance)+".");
+}
+function walletModal(){
+  openModal("Add a payment method (demo)",
+  '<div class="field"><label>Type</label><select id="wType"><option>Bank account (eCheck)</option><option>Card</option></select></div>'+
+  '<div class="field"><label>Nickname</label><input id="wName" placeholder="e.g. Joint checking"></div>'+
+  '<div class="field"><label>Last 4 digits (demo only — never a real number)</label><input id="wLast4" maxlength="4" inputmode="numeric" placeholder="1234"></div>'+
+  '<button class="btn" style="width:100%" onclick="addWallet()">Save to wallet</button>');
+}
+function addWallet(){ var n=$("#wName").value.trim()||"Saved method"; var l=($("#wLast4").value||"0000").padStart(4,"0"); var t=$("#wType").value; state.wallet.push({type:t, label:n+" ••"+l, def:false}); closeModal(); renderPayments(); toast("Payment method added to your demo wallet."); }
+function removeWallet(i){ state.wallet.splice(i,1); renderPayments(); toast("Payment method removed."); }
+function autopayModal(){
+  openModal("AutoPay",
+  '<p>Current: <strong>'+(state.autopay.on? state.autopay.amount+", "+state.autopay.freq+", renews "+state.autopay.renews : "Off")+'</strong></p>'+
+  '<div class="field"><label>Amount</label><select id="apAmt"><option>Full balance</option><option>Fixed $350.00</option></select></div>'+
+  '<div class="field"><label>Frequency</label><select id="apFreq"><option>Quarterly</option><option>Monthly</option><option>Semi-annual</option><option>Annual</option></select></div>'+
+  '<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" onclick="saveAutopay()">Save AutoPay</button><button class="btn ghost" onclick="offAutopay()">Turn AutoPay off</button></div>');
+}
+function saveAutopay(){ state.autopay={on:true, amount:$("#apAmt").value, freq:$("#apFreq").value, renews:"Dec 2027"}; closeModal(); renderPayments(); toast("AutoPay saved ("+state.autopay.freq+")."); }
+function offAutopay(){ state.autopay.on=false; closeModal(); renderPayments(); toast("AutoPay turned off."); }
+function downloadLedger(){
+  var csv="Date,Description,Category,Amount\n"+state.ledger.map(function(l){return l.date+',"'+l.desc+'",'+l.cat+","+l.amt.toFixed(2)}).join("\n");
+  var a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download="rayfield-demo-ledger.csv"; a.click(); toast("Ledger exported as CSV.");
+}
+
+function renderARC(){
+  var rows=state.arcs.map(function(a){ return '<tr><td>'+a.date+'</td><td>'+esc(a.type)+'</td><td>'+esc(a.desc)+'</td><td><span class="badge '+(a.status==="Approved"?"green":"amber")+'">'+a.status+'</span></td></tr>'; }).join("");
+  $("#sec-arc").innerHTML='<h2>Architectural (ARC) Requests</h2><p class="lede">Every submission carries a $20 fee, charged to your ledger. Attachments and the three CC&amp;R certifications are required, just like the real form.</p>'+
+  '<button class="btn" style="margin-bottom:16px" onclick="arcModal()">+ New ARC request</button>'+
+  '<div class="card"><div class="tablewrap"><table><tr><th>Date</th><th>Type</th><th>Project</th><th>Status</th></tr>'+rows+'</table></div></div>';
+}
+function arcModal(){
+  var types=["Exterior painting","Front porch","Fence","Pool","Solar panels","Shed / outbuilding","Windows & doors","Gutters","Driveway","Deck / patio","Handrails","Mailbox","Other"];
+  openModal("New ARC request",
+  '<div class="field"><label>Project type</label><select id="arcType">'+types.map(function(t){return "<option>"+t+"</option>"}).join("")+'</select></div>'+
+  '<div class="field"><label>Project details</label><textarea id="arcDesc" rows="3" placeholder="Describe materials, colors, dimensions…"></textarea></div>'+
+  '<div class="grid2"><div class="field"><label>Estimated start</label><input id="arcStart" type="date" value="2026-12-01"></div><div class="field"><label>Estimated completion</label><input id="arcEnd" type="date" value="2026-12-20"></div></div>'+
+  '<div class="field"><label>Attachments (demo — file names only)</label><input id="arcFile" type="file"></div>'+
+  '<label style="font-weight:500;display:flex;gap:10px;align-items:flex-start;margin-bottom:8px"><input type="checkbox" id="arcCert1"> I certify I am the owner, will obtain required permits, and the project stays within my property lines.</label>'+
+  '<label style="font-weight:500;display:flex;gap:10px;align-items:flex-start;margin-bottom:8px"><input type="checkbox" id="arcCert2"> I have reviewed the CC&amp;Rs and the ARC Handbook for this project type.</label>'+
+  '<label style="font-weight:500;display:flex;gap:10px;align-items:flex-start;margin-bottom:14px"><input type="checkbox" id="arcFee"> I acknowledge the $20 ARC submission fee will be added to my ledger.</label>'+
+  '<button class="btn" style="width:100%" onclick="submitARC()">Submit request</button>');
+}
+function submitARC(){
+  if(!($("#arcCert1").checked && $("#arcCert2").checked && $("#arcFee").checked)){ toast("Please check all three boxes — certifications and the $20 fee acknowledgment."); return; }
+  var desc=$("#arcDesc").value.trim(); if(!desc){ toast("Add a short project description."); return; }
+  state.arcs.unshift({date:"2026-11-10", type:$("#arcType").value, desc:desc, status:"Pending review"});
+  state.ledger.push({date:"2026-11-10", desc:"ARC submission fee — "+$("#arcType").value, cat:"ARC fee", amt:20});
+  state.balance+=20; closeModal(); renderAll(); goto("arc"); toast("ARC request submitted. $20 fee added to your ledger.");
+}
+
+function renderWO(){
+  var rows=state.workorders.map(function(w){ return '<tr><td>'+w.num+'</td><td>'+w.issued+'</td><td>'+w.due+'</td><td>'+esc(w.desc)+'</td><td><span class="badge '+(w.status==="Complete"?"green":"amber")+'">'+w.status+'</span></td></tr>'; }).join("");
+  $("#sec-workorders").innerHTML='<h2>Work Orders</h2><p class="lede">Report common-area maintenance. Pick a category, then the item — the two-step flow from the live portal.</p>'+
+  '<button class="btn" style="margin-bottom:16px" onclick="woModal()">+ New work order</button>'+
+  '<div class="card"><div class="tablewrap"><table><tr><th>#</th><th>Issued</th><th>Due</th><th>Description</th><th>Status</th></tr>'+rows+'</table></div></div>';
+}
+function woModal(){
+  openModal("New work order — step 1 of 2",
+  '<div class="field"><label>Category</label><select id="woCat"><option>Landscaping</option><option>Exterior maintenance</option><option>Road &amp; street</option><option>General maintenance</option><option>Fencing</option><option>HVAC (clubhouse)</option><option>Pool / amenities</option></select></div>'+
+  '<div class="field"><label>What needs attention?</label><textarea id="woDesc" rows="3" placeholder="Location + what you saw…"></textarea></div>'+
+  '<button class="btn" style="width:100%" onclick="submitWO()">Continue &amp; submit</button>');
+}
+function submitWO(){ var d=$("#woDesc").value.trim(); if(!d){ toast("Describe the issue first."); return; } var num="WO-"+(1043+state.workorders.length); state.workorders.unshift({num:num, issued:"2026-11-10", due:"2026-11-17", desc:$("#woCat").value+" — "+d, status:"Open"}); closeModal(); renderAll(); goto("workorders"); toast("Work order "+num+" created."); }
+
+function renderViolations(){
+  var cards=state.violations.map(function(v,i){ return '<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><strong>'+esc(v.desc)+'</strong><span class="badge '+(v.status==="Open"?"red":"gray")+'">'+v.status+'</span></div><p style="color:var(--muted);margin:6px 0">'+v.date+' · '+esc(v.note)+'</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small secondary" onclick="violationComment('+i+')">Add a comment</button><button class="btn small ghost" onclick="toast(\'Demo photo noted on this case.\')">Add photo</button></div><div id="vcom-'+i+'"></div></div>'; }).join("");
+  $("#sec-violations").innerHTML='<h2>Covenant Oversight — Violations</h2><p class="lede">Your cases, with history and a place to respond. Fine amounts follow the community Fine Schedule in Documents.</p>'+cards;
+}
+function violationComment(i){
+  $("#vcom-"+i).innerHTML='<div style="margin-top:12px"><label>Your comment</label><textarea id="vtext-'+i+'" rows="2" placeholder="e.g. Corrected on Nov 9 — bins now stored in garage."></textarea><button class="btn small" style="margin-top:8px" onclick="saveVComment('+i+')">Post comment</button></div>';
+}
+function saveVComment(i){ var t=$("#vtext-"+i).value.trim(); if(!t){ toast("Write a comment first."); return; } state.violations[i].note += " Your comment (Nov 10): "+t; renderViolations(); toast("Comment added to your case."); }
+
+function renderDocs(){
+  $("#sec-documents").innerHTML='<h2>Documents &amp; Forms Library</h2><p class="lede">Governing documents, financials, and meeting packets. In this demo, Preview shows a summary; Download saves a small sample text file.</p>'+
+  '<div class="toolbar"><input id="docSearch" type="search" placeholder="Search documents…"><select id="docFolder"><option value="">All folders</option>'+["Governing Documents","Financials","Meetings","Pool & Clubhouse"].map(function(f){return "<option>"+f+"</option>"}).join("")+'</select></div>'+
+  '<div class="card" id="docList"></div>';
+  var draw=function(){
+    var q=($("#docSearch").value||"").toLowerCase(); var f=$("#docFolder").value;
+    var list=state.documents.filter(function(d){ return (!f||d.folder===f) && d.name.toLowerCase().indexOf(q)>-1; });
+    $("#docList").innerHTML = list.length ? list.map(function(d){ var idx=state.documents.indexOf(d); return '<div class="docrow"><div class="iconbox">📄</div><div style="flex:1"><strong>'+esc(d.name)+'</strong><br><span style="color:var(--muted);font-size:.88rem">'+d.folder+' · '+d.meta+'</span></div><button class="btn small secondary" onclick="previewDoc('+idx+')">Preview</button><button class="btn small ghost" onclick="downloadDoc('+idx+')">Download</button></div>'; }).join("") : '<p style="color:var(--muted)">No documents match that search.</p>';
+  };
+  $("#docSearch").addEventListener("input",draw); $("#docFolder").addEventListener("change",draw); draw();
+}
+function previewDoc(i){ var d=state.documents[i]; openModal(d.name,'<p><strong>Folder:</strong> '+d.folder+'</p><p><strong>Details:</strong> '+d.meta+'</p><p style="color:var(--muted)">Demo preview: in the live portal this opens the full PDF — the CC&amp;Rs, bylaws, ARC Handbook (rev. Sept 18, 2026), Fine Schedule, budgets, financials, and reserve study are all real documents the association already has on file.</p>'); }
+function downloadDoc(i){ var d=state.documents[i]; var a=document.createElement("a"); a.href=URL.createObjectURL(new Blob(["Retreat at Rayfield — "+d.name+"\n"+d.folder+" · "+d.meta+"\n\nSample file from the portal proof of concept. The live portal serves the full PDF here."],{type:"text/plain"})); a.download=d.name.replace(/[^a-z0-9]+/gi,"-")+".txt"; a.click(); toast("Sample download started: "+d.name); }
+
+function renderCalendar(){
+  var y=calCursor.y, m=calCursor.m; var names=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var first=new Date(y,m,1).getDay(); var days=new Date(y,m+1,0).getDate();
+  var cells=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(function(d){return '<div class="dow">'+d+'</div>'}).join("");
+  for(var i=0;i<first;i++) cells+='<div class="day dim"></div>';
+  for(var d=1; d<=days; d++){ var evs=state.events.filter(function(e){return e.day===d&&e.month===m&&e.year===y}); var today=(y===2026&&m===10&&d===10)?" today":""; cells+='<button class="day'+today+'" onclick="dayEvents('+d+')"><strong>'+d+'</strong>'+evs.map(function(e){return '<span class="ev">'+esc(e.title)+'</span>'}).join("")+'</button>'; }
+  $("#sec-calendar").innerHTML='<h2>Community Calendar</h2><p class="lede">Board meetings, social events, and your reservations. Tap a day to see what\'s on.</p>'+
+  '<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap"><button class="btn secondary small" onclick="moveCal(-1)">← Prev</button><h3 style="font-size:1.25rem">'+names[m]+' '+y+'</h3><button class="btn secondary small" onclick="moveCal(1)">Next →</button><button class="btn ghost small" onclick="calCursor={y:2026,m:10};renderCalendar()">Today (Nov 2026)</button></div>'+
+  '<div class="cal">'+cells+'</div><div id="dayDetail" style="margin-top:14px"></div>';
+}
+function moveCal(n){ calCursor.m+=n; if(calCursor.m<0){calCursor.m=11;calCursor.y--} if(calCursor.m>11){calCursor.m=0;calCursor.y++} renderCalendar(); }
+function dayEvents(d){ var evs=state.events.filter(function(e){return e.day===d&&e.month===calCursor.m&&e.year===calCursor.y}); $("#dayDetail").innerHTML='<div class="card"><h3 style="margin-bottom:8px">'+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][calCursor.m]+' '+d+'</h3>'+(evs.length? evs.map(function(e){return '<div class="kv"><span>'+esc(e.title)+'</span><strong>'+esc(e.time)+'</strong></div>'}).join("") : '<p style="color:var(--muted);margin:0">Nothing scheduled this day.</p>')+'</div>'; }
+
+function renderReservations(){
+  var rows=state.reservations.map(function(r){ return '<tr><td>'+r.date+'</td><td>'+esc(r.amenity)+'</td><td>'+esc(r.time)+'</td><td>'+r.guests+'</td><td><span class="badge green">'+r.status+'</span></td></tr>'; }).join("");
+  $("#sec-reservations").innerHTML='<h2>Amenity Reservations</h2><p class="lede">Clubhouse and pool party reservations. Clubhouse rental: fee + refundable deposit (rising Jan 1, 2027). Max 15 hours, up to 83 guests. Post-event checklist applies.</p>'+
+  '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"><button class="btn" onclick="resModal()">+ New reservation</button><button class="btn secondary" onclick="toast(\'Demo: pool fob added — $25, pickup at clubhouse desk or by mail.\')">Buy a pool fob — $25</button></div>'+
+  '<div class="card"><h3 style="margin-bottom:8px">My reservations</h3><div class="tablewrap"><table><tr><th>Date</th><th>Amenity</th><th>Time</th><th>Guests</th><th>Status</th></tr>'+rows+'</table></div></div>';
+}
+function resModal(){
+  openModal("Reserve an amenity",
+  '<div class="field"><label>Amenity</label><select id="resAm"><option>Clubhouse</option><option>Pool — party area</option><option>Amenity complex lawn</option></select></div>'+
+  '<div class="grid2"><div class="field"><label>Date</label><input id="resDate" type="date" value="2026-11-21"></div><div class="field"><label>Guests (1–83)</label><input id="resGuests" type="number" min="1" max="83" value="20"></div></div>'+
+  '<div class="grid2"><div class="field"><label>Start</label><select id="resStart"><option>11:00 AM</option><option>2:00 PM</option><option>5:00 PM</option></select></div><div class="field"><label>End</label><select id="resEnd"><option>1:00 PM</option><option>6:00 PM</option><option>9:00 PM</option></select></div></div>'+
+  '<div id="resWarn"></div>'+
+  '<p style="font-size:.88rem;color:var(--muted)">You have 30 minutes to complete a reservation in the live portal. Clubhouse bookings show the rental fee + deposit before you confirm.</p>'+
+  '<button class="btn" style="width:100%" onclick="submitRes()">Request reservation</button>');
+  var check=function(){ var dt=$("#resDate").value; var am=$("#resAm").value; var clash=state.reservations.some(function(r){return r.date===dt && r.amenity===am}); $("#resWarn").innerHTML = clash ? '<div class="notice" style="margin-bottom:12px">⚠️ <strong>Possible clash:</strong> you already hold a '+esc(am)+' reservation on this date. The live calendar would show blocked times before you book.</div>' : ''; };
+  $("#resDate").addEventListener("change",check); $("#resAm").addEventListener("change",check); check();
+}
+function submitRes(){ var g=parseInt($("#resGuests").value)||0; if(g<1||g>83){ toast("Guest count must be between 1 and 83."); return; } state.reservations.push({date:$("#resDate").value, amenity:$("#resAm").value, time:$("#resStart").value+"–"+$("#resEnd").value, guests:g, status:"Confirmed"}); var parts=$("#resDate").value.split("-"); state.events.push({day:parseInt(parts[2]), month:parseInt(parts[1])-1, year:parseInt(parts[0]), title:"Your "+$("#resAm").value+" reservation", time:$("#resStart").value}); closeModal(); renderAll(); goto("reservations"); toast("Reservation confirmed for "+$("#resDate").value+"."); }
+
+function renderDirectory(){
+  $("#sec-directory").innerHTML='<h2>Directory</h2><p class="lede">Board, committees, and opted-in homeowners. Control what others see about you in My Profile.</p>'+
+  '<div class="toolbar"><input id="dirSearch" type="search" placeholder="Search name or role…"></div><div class="card" id="dirList"></div>';
+  var draw=function(){ var q=($("#dirSearch").value||"").toLowerCase(); var list=state.directory.filter(function(p){return (p.name+" "+p.role).toLowerCase().indexOf(q)>-1}); $("#dirList").innerHTML=list.map(function(p){return '<div class="docrow"><div class="iconbox">👤</div><div style="flex:1"><strong>'+esc(p.name)+'</strong> · '+esc(p.role)+'<br><span style="color:var(--muted);font-size:.88rem">'+esc(p.addr)+' · '+esc(p.phone)+' · '+esc(p.email)+'</span></div><a class="btn small secondary" href="mailto:'+p.email+'">Email</a></div>'}).join("")||'<p style="color:var(--muted)">No matches.</p>'; };
+  $("#dirSearch").addEventListener("input",draw); draw();
+}
+
+function renderAnnouncements(){
+  $("#sec-announcements").innerHTML='<h2>Announcements &amp; Bulletin Board</h2><p class="lede">Community news from the board and manager.</p>'+
+  state.announcements.map(function(a){ return '<div class="card" style="margin-bottom:12px"><span class="badge gray">'+a.date+'</span><h3 style="margin:8px 0 6px">'+esc(a.title)+'</h3><p style="margin:0;color:var(--muted)">'+esc(a.body)+'</p></div>'; }).join("")+
+  '<div class="card"><h3 style="margin-bottom:10px">Photo gallery preview</h3><p style="color:var(--muted);margin:0 0 12px">Fall festival, pool season, and clubhouse shots live in the Gallery.</p><button class="btn secondary small" onclick="goto(\'gallery\')">Open gallery</button></div>';
+}
+
+function renderGallery(){
+  var tiles=[["🌳","Pond & walking path","#dcebd9"],["🏊","Pool deck — summer","#d3e6f2"],["🏠","Clubhouse exterior","#efe3cf"],["🎃","Fall festival 2026","#f5ddc4"],["🌸","Entrance landscaping","#e8ddef"],["🏋️","Gym","#dde3e6"],["🛝","Playground","#e2ecd4"],["🌅","Sunset over Rayfield Dr","#f7e3c2"]];
+  $("#sec-gallery").innerHTML='<h2>Photo Gallery</h2><p class="lede">Community albums. (Illustrated tiles stand in for photos in this demo.)</p><div class="gallery">'+
+  tiles.map(function(t){ return '<div class="gtile"><div class="art" style="background:'+t[2]+'">'+t[0]+'</div><p>'+t[1]+'</p></div>'; }).join("")+'</div>';
+}
+
+function renderForms(){
+  $("#sec-forms").innerHTML='<h2>Cusick-Style Forms</h2><p class="lede">The three forms from the live portal, rebuilt as working demo forms.</p><div class="cards">'+
+  '<div class="card"><h3 style="margin-bottom:6px">New Resident Form</h3><p style="color:var(--muted)">Cell phone, renting status, tenant details if renting.</p><button class="btn small" onclick="formModal(\'New Resident\')">Open form</button></div>'+
+  '<div class="card"><h3 style="margin-bottom:6px">Rental Lease Agreement</h3><p style="color:var(--muted)">Per Declaration §11.23 — lease documentation upload.</p><button class="btn small" onclick="formModal(\'Rental Lease\')">Open form</button></div>'+
+  '<div class="card"><h3 style="margin-bottom:6px">ACH Draft Enrollment</h3><p style="color:var(--muted)">Free quarterly draft on the 5th. Cancel by check 10 days before a draft.</p><button class="btn small" onclick="formModal(\'ACH Enrollment\')">Open form</button></div></div>';
+}
+function formModal(kind){
+  openModal(kind+" form (demo)",
+  '<div class="field"><label>Full name</label><input value="Alex Morgan"></div>'+
+  '<div class="field"><label>Property address</label><input value="142 Rayfield Drive, Charlotte, NC" ></div>'+
+  '<div class="field"><label>Cell phone (required)</label><input placeholder="(704) 555-0000"></div>'+
+  (kind==="Rental Lease" ? '<div class="field"><label>Lease document</label><input type="file"></div><div class="field"><label>Comments</label><textarea rows="2"></textarea></div>' : '')+
+  (kind==="New Resident" ? '<div class="field"><label>Renting this home?</label><select><option>No — owner occupied</option><option>Yes — renting</option></select></div>' : '')+
+  '<p style="font-size:.88rem;color:var(--muted)">Demo form — submitting shows a confirmation only; nothing is sent.</p>'+
+  '<button class="btn" style="width:100%" onclick="closeModal();toast(\''+kind+' form submitted (demo).\')">Submit form</button>');
+}
+
+function renderContact(){
+  $("#sec-contact").innerHTML='<h2>Contact &amp; Ask TED</h2><p class="lede">Message the association manager, or ask TED — the portal assistant that answers from the CC&amp;Rs and community info.</p>'+
+  '<div class="grid2"><div class="card"><h3 style="margin-bottom:10px">Contact the manager</h3>'+
+  '<p style="color:var(--muted);margin-top:0">Association manager (demo address)<br>Phone (704) 555-0100 · manager@rayfield.demo<br>Office hours Mon–Fri, 9 AM–5 PM</p>'+
+  '<div class="field"><label>Your message (max 500 characters)</label><textarea id="contactMsg" rows="4" maxlength="500" placeholder="How can we help?"></textarea></div>'+
+  '<button class="btn" onclick="sendContact()">Send message</button></div>'+
+  '<div class="card"><h3 style="margin-bottom:10px">Ask TED</h3><div class="chatbox" id="chatBox"><div class="msg ted"><span class="bubble">Hi! I\'m TED. Ask me about dues, fees, ARC requests, reservations, or the pool. Try: “How much are dues?” or “What\'s the ARC fee?”</span></div></div>'+
+  '<div style="display:flex;gap:8px"><input id="tedInput" placeholder="Ask TED…" style="flex:1"><button class="btn" onclick="askTed()">Send</button></div>'+
+  '<p style="font-size:.82rem;color:var(--muted)">TED\'s answers are general information — verify anything official or legal with the manager.</p></div></div>';
+  $("#tedInput").addEventListener("keydown",function(e){ if(e.key==="Enter") askTed(); });
+}
+function sendContact(){ var t=$("#contactMsg").value.trim(); if(!t){ toast("Write a message first."); return; } $("#contactMsg").value=""; toast("Message sent (demo) — the manager typically replies within one business day."); }
+function tedAnswer(q){
+  q=q.toLowerCase();
+  if(q.indexOf("due")>-1||q.indexOf("assessment")>-1||q.indexOf("how much")>-1) return "Assessments are quarterly, due Jan, Apr, Jul, Oct. They rise from $300 to $350 per quarter on January 1, 2027, under the approved 2027 budget.";
+  if(q.indexOf("arc")>-1||q.indexOf("architect")>-1||q.indexOf("fence")>-1||q.indexOf("paint")>-1) return "ARC requests carry a $20 submission fee, charged to your ledger. You\'ll need estimated start/completion dates, project details, attachments, and the CC&R certifications. Start one under ARC Requests.";
+  if(q.indexOf("fee")>-1||q.indexOf("card")>-1||q.indexOf("echeck")>-1||q.indexOf("e-check")>-1) return "Online payment fees: credit/debit cards 4%, e-check $2.99 flat, returned payment $30. ACH draft and mailed checks have no processing fee.";
+  if(q.indexOf("pool")>-1) return "The pool is open for the season until winterization on November 16. Pool party reservations are under Reservations, and a replacement fob is $25.";
+  if(q.indexOf("clubhouse")>-1||q.indexOf("reserv")>-1||q.indexOf("book")>-1) return "Reserve the clubhouse or pool party area under Reservations — up to 83 guests, max 15 hours. The clubhouse has a rental fee plus a refundable deposit.";
+  if(q.indexOf("board")>-1||q.indexOf("meeting")>-1) return "Open board meetings are on the Calendar — the next open session is Nov 12 at 6:30 PM in the clubhouse. Agenda packets are in Documents → Meetings.";
+  if(q.indexOf("violation")>-1||q.indexOf("fine")>-1) return "Your violation cases, history, and the Fine Schedule are under Violations and Documents. You can add a comment or photo to any open case.";
+  return "I can help with dues and fees, ARC requests, reservations, violations, documents, and meetings. Try asking about any of those — or use Contact to reach the manager directly.";
+}
+function askTed(){ var inp=$("#tedInput"); var q=inp.value.trim(); if(!q) return; var box=$("#chatBox"); box.innerHTML+='<div class="msg me"><span class="bubble">'+esc(q)+'</span></div>'; box.innerHTML+='<div class="msg ted"><span class="bubble">'+esc(tedAnswer(q))+'</span></div>'; inp.value=""; box.scrollTop=box.scrollHeight; }
+
+function renderProfile(){
+  $("#sec-profile").innerHTML='<h2>My Profile</h2><p class="lede">Account details, communication preferences, and directory visibility.</p>'+
+  '<div class="grid2"><div class="card"><h3 style="margin-bottom:10px">Account details</h3>'+
+  '<div class="kv"><span>Owner</span><strong>Alex Morgan (Guest)</strong></div><div class="kv"><span>Address</span><strong>142 Rayfield Drive</strong></div><div class="kv"><span>Account</span><strong>Demo-0142</strong></div><div class="kv"><span>Email</span><strong>guest@rayfield.demo</strong></div><div class="kv"><span>Renting status</span><strong>Owner occupied</strong></div>'+
+  '<div class="field" style="margin-top:14px"><label>Change password (added in this portal — the live one has none)</label><input type="password" placeholder="New password"></div><button class="btn small secondary" onclick="toast(\'Password updated (demo).\')">Update password</button></div>'+
+  '<div class="card"><h3 style="margin-bottom:6px">Preferences</h3>'+
+  [["Text payment reminders",true],["Email — announcements",true],["Email — calendar events",false],["Email — reservation updates",true],["Show my address in directory",true],["Show my email in directory",false],["Show my phone in directory",true]].map(function(p){ return '<div class="switchrow"><span>'+p[0]+'</span><input type="checkbox" '+(p[1]?"checked":"")+' onchange="toast(\'Preference saved (demo).\')"></div>'; }).join("")+
+  '</div></div>';
+}
+
+/* ---------- Build sections ---------- */
+(function(){
+  var wrap=$("#sections");
+  NAV.forEach(function(n){ var d=document.createElement("div"); d.className="section"; d.id="sec-"+n[0]; wrap.appendChild(d); });
+  renderDashboard(); renderPayments(); renderARC(); renderWO(); renderViolations(); renderDocs(); renderCalendar(); renderReservations(); renderDirectory(); renderAnnouncements(); renderGallery(); renderForms(); renderContact(); renderProfile();
+  buildNav();
+})();
+
+/* ---------- Login ---------- */
+function enterApp(){ $("#loginView").style.display="none"; $("#appView").style.display="block"; renderAll(); goto("dashboard"); toast("Signed in as Guest — sample data, every feature open."); }
+$("#guestBtn").addEventListener("click", enterApp);
+$("#loginForm").addEventListener("submit", function(e){ e.preventDefault(); if(!$("#loginEmail").value.trim()||!$("#loginPass").value){ $("#loginErr").style.display="block"; return; } enterApp(); });
+function doLogout(){ $("#appView").style.display="none"; $("#mobileMenu").style.display="none"; $("#loginView").style.display="grid"; }
+$("#logoutBtn").addEventListener("click", doLogout);
+$("#logoutBtnM").addEventListener("click", doLogout);
+$("#tedBtnTop").addEventListener("click", function(){ goto("contact"); });
+</script>
+</body>
+</html>
